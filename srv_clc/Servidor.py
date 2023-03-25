@@ -1,31 +1,37 @@
-import socket
+import socket 
+
+# Crea el socket del servidor
 
 
-def Servidor(ip:str, puerto:int, conexionesMax:int):
-    infoConexion = (ip, puerto)
-    
-    socketSrv = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    socketSrv.bind(infoConexion)
-    socketSrv.listen(conexionesMax)
-    
-    print("Esperando conexiones en %s:%s" %(ip, puerto))
-    cliente, direccion = socketSrv.accept()
-    print("Conexion establecida con %s:%s" %(direccion[0], direccion[1]))
-    
-    
-    while True:
-        datos = cliente.recv(1024)
-        
-        if datos == "exit":
-            cliente.send("exit")
-            break
-        
-        print("Recibido %s" %datos)
-        cliente.sendall("--RECIBIDO--".encode())
-    
-    print("---------CONEXION CERRADA-----------------")
-    socketSrv.close()
-    
+
+class Servidor:
+
+    def __init__(self):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Asigna una dirección IP y un puerto al socket del servidor
+        self.server_address = ('127.0.0.1', 8085)
+        self.server_socket.bind(self.server_address)
+
+        # Escucha conexiones entrantes
+        self.server_socket.listen(1)
 
 
-Servidor('127.0.0.1', 8080,5)
+
+    def StartServer(self):
+        while True:
+            #Espera a que llegue una solictud
+            connection, client_address = self.server_socket.accept()
+
+            try:
+                request_data = connection.recv(1024).decode()
+
+                #Envia una respuesta al cliente
+                response_data = "Respuesta del servidor"
+                response_headers = 'HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: {}\n\n'.format(len(response_data))
+                connection.send(response_headers.encode() + response_data.encode())
+            finally:
+                # Cierra la conexion 
+                connection.close()
+
+
